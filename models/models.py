@@ -2,6 +2,9 @@
 
 from odoo import models, fields, api
 import time
+import logging
+_logger = logging.getLogger(__name__)
+import datetime
 
 class Asset(models.Model):
     _name = 'account.asset.asset'
@@ -56,3 +59,20 @@ class Asset(models.Model):
     tgl_jt_asuransi = fields.Date(
         string='Tanggal Jatuh Tempo Asuransi',
         default=lambda *a : time.strftime("%Y-%m-%d"))
+    
+    def cek_jatuh_tempo(self):
+        _logger.info('proses cek jatuh tempo.....')
+        sql = "select id,name,tgl_jp_pajak from account_asset_asset where tgl_jp_pajak = %s"
+        # date_jt = hari + 10 hari
+        date_jt = datetime.datetime.now() + datetime.timedelta(days=10)
+
+        cr = self.env.cr
+        cr.execute(sql , (date_jt.strftime("%Y-%m-%d"),))
+        res = cr.fetchall()
+
+
+        for record in res:
+            _logger.info("record = %s", record )
+            _logger.info("asset id = %s", record[0] )
+            _logger.info("asset name = %s", record[1] )
+            _logger.info("asset jt = %s", record[2] )
