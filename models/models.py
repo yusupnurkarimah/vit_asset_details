@@ -8,7 +8,7 @@ import datetime
 
 class Asset(models.Model):
     _name = 'account.asset.asset'
-    _inherit = 'account.asset.asset'
+    _inherit = ['account.asset.asset','mail.thread']
 
     pengadaan = fields.Selection(
     	selection=[
@@ -20,8 +20,7 @@ class Asset(models.Model):
     	selection=[
 	    	('SHM', 'SHM'),
 	    	('HGB', 'HGB')],
-        string='Jenis Sertifikat',
-        required="true")
+        string='Jenis Sertifikat')
     processor = fields.Char(
     	string='Processor',
     	size=50,
@@ -71,8 +70,13 @@ class Asset(models.Model):
         res = cr.fetchall()
 
 
-        for record in res:
-            _logger.info("record = %s", record )
-            _logger.info("asset id = %s", record[0] )
-            _logger.info("asset name = %s", record[1] )
-            _logger.info("asset jt = %s", record[2] )
+        def cek_jatuh_tempo(self):
+        _logger.info('proses cek jatuh tempo.....')
+
+        # date_jt = hari + 10 hari
+        date_jt = datetime.datetime.now() + datetime.timedelta(days=10)
+        assets = self.env['account.asset.asset'].search([('tgl_jp_pajak','=',date_jt)])
+        for asset in assets:
+            asset.message_post(body="Asset ini akan jatuh tempo 10 hari lagi",
+                                message_type='comment',
+                                subtype='mail.mt_comment')
